@@ -12,6 +12,8 @@ import os
 from glob import glob
 
 
+ORTHOGONAL_COORD_SYSTEM_ID = 2 # Kyoshu are
+
 DATA_DIR = Path('./')
 
 COORD_FILE = "c02KD67120220401建築物_Merged_xy.csv"
@@ -42,7 +44,7 @@ def open_image(path):
 # ar, ag, ab, br, bg, bb, cr, cg, cb, dr, dg, db = [], [], [], [], [], [], [], [], [],[],[],[]
 # print("finish")
 
-def koten(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy):
+def koten(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy): # intersection
     s1 = ((apx - cpx) * (bpy - cpy)) + ((bpx - cpx) * (cpy - apy))
     s2 = ((apx - dpx) * (bpy - dpy)) + ((bpx - dpx) * (dpy - apy))
     return s1 * s2
@@ -185,19 +187,14 @@ def main():
     # Exstract unique building_id from df
     ids = df.drop_duplicates(subset = ['id'])['id'].to_list()
 
-    for id in ids[:2]:
-        selected_df = df.loc[df['id']==id]
-        polygon = [[float(row['POINT_X']), float(row['POINT_Y'])] for idx, row in selected_df.iterrows()]
-        print(polygon)
-    exit()
-
-    print(ids[1], df.loc[df['id']==ids[1]])
-    exit()
     for img_path in sorted(AERO_IMG_DIR.glob('*.jpg')):
         print(img_path)
         jgw_path = img_path.with_suffix('.jgw')
-        get_location_point(jgw_path)
+        location_point = get_location_point(jgw_path)
         img = open_image(str(img_path))
+        for id in ids[:2]:
+            selected_df = df.loc[df['id']==id]
+            polygon = [[float(row['POINT_X']), float(row['POINT_Y'])] for idx, row in selected_df.iterrows()]
 
 if __name__ == '__main__':
     main()
