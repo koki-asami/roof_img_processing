@@ -31,6 +31,18 @@ AERO_IMG_DIR = DATA_DIR / "10cm高解像度"
 
 def get_location_point(path):
     with open(path, 'r') as f:
+        '''
+        Args:
+            data (list): parameters to apply affine transform for raster coordinares.
+                        see http://cse.naro.affrc.go.jp/takahasi/gisdata/avg/worldraster.htm
+                        data[0]: Length of a pixel along the x-axis.
+                        data[1]: Rotation parameter of rows.
+                        data[2]: Rotation parameter of colunms.
+                        data[3]: Length of a pixel along the y-axis.
+                        data[4]: Center of x coordimate of top-left pixel.
+                        data[5]: Center of y coordimate of top-left pixel.
+                        
+        '''
         data = [float(line.split('\n')[0]) for line in f.readlines()]
     
     scale = data[0]
