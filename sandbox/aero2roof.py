@@ -14,6 +14,14 @@ from glob import glob
 
 ORTHOGONAL_COORD_SYSTEM_ID = 2 # Kyoshu are
 
+ORIGIN_LON_LAT = {  #https://www.gsi.go.jp/LAW/heimencho.html
+    1: [129.30, 33.0],
+    2: [131.0, 33.0],
+}
+
+IMG_WIDTH = 10000
+IMG_HIGHT = 7500
+
 DATA_DIR = Path('./')
 
 COORD_FILE = "c02KD67120220401建築物_Merged_xy.csv"
@@ -24,8 +32,14 @@ AERO_IMG_DIR = DATA_DIR / "10cm高解像度"
 def get_location_point(path):
     with open(path, 'r') as f:
         data = [float(line.split('\n')[0]) for line in f.readlines()]
-    print(data)
-    return 0
+    
+    scale = data[0]
+    x0 = data[4]
+    y1 = data[5]
+    x1 = x0 + IMG_WIDTH*scale
+    y0 = y1 + IMG_HIGHT*(-scale)
+    location_point = [x0, x1, y0, y1]
+    return location_point
 
 def open_image(path):
     src = gdal.Open(path, gdalconst.GA_ReadOnly)
