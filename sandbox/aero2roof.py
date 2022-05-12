@@ -180,22 +180,19 @@ def delete_list(h, del_axis):
 
 def main():
 
-    # # Load polygon coordinates from file
-    # with open(COORD_FILE_PATH, "r", encoding="utf_8") as file:
-    #     csvreaded = csv.reader(file)
-    #     header = next(csvreaded)
-    #     line1=[]
-    #     for row in csvreaded:
-    #         # extract building_id, X, Y and convert to corresponding data type.
-    #         building_id = row[1]
-    #         coord_x = float(row[2])
-    #         coord_y = float(row[3])
-    #         data = [building_id, coord_x, coord_y]
-    #         line1.append(data)
-    # zz2 = np.asarray(line1)
+    # Load polygon coordinates as DATAFRAME
     df = pd.read_csv(COORD_FILE_PATH, usecols=[1,2,3])
-    print(df.head())
+    # Exstract unique building_id from df
+    ids = df.drop_duplicates(subset = ['id'])['id'].to_list()
 
+    for id in ids[:2]:
+        selected_df = df.loc[df['id']==id]
+        polygon = [[float(row['POINT_X']), float(row['POINT_Y'])] for idx, row in selected_df.iterrows()]
+        print(polygon)
+    exit()
+
+    print(ids[1], df.loc[df['id']==ids[1]])
+    exit()
     for img_path in sorted(AERO_IMG_DIR.glob('*.jpg')):
         print(img_path)
         jgw_path = img_path.with_suffix('.jgw')
