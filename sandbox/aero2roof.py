@@ -82,40 +82,21 @@ def lon2pix(lon, lon_l, lon_r):
     return (lon - lon_l) / (lon_r - lon_l) * IMG_WIDTH
 
 
-def koten(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy): # intersection
-    s1 = ((apx - cpx) * (bpy - cpy)) + ((bpx - cpx) * (cpy - apy))
-    s2 = ((apx - dpx) * (bpy - dpy)) + ((bpx - dpx) * (dpy - apy))
-    return s1 * s2
-def idotopix(ido,upido,downido):
-    return (upido-ido)/(upido-downido)*7500
-def keidotopix(keido,leftkeido,rightkeido):
-    return (keido-leftkeido)/(rightkeido-leftkeido)*10000
+# def koten(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy): # intersection
+#     s1 = ((apx - cpx) * (bpy - cpy)) + ((bpx - cpx) * (cpy - apy))
+#     s2 = ((apx - dpx) * (bpy - dpy)) + ((bpx - dpx) * (dpy - apy))
+#     return s1 * s2
+# def idotopix(ido,upido,downido):
+#     return (upido-ido)/(upido-downido)*7500
+# def keidotopix(keido,leftkeido,rightkeido):
+#     return (keido-leftkeido)/(rightkeido-leftkeido)*10000
 
-#西経度、東経度、南緯度、北緯度
-location_point_of_image1 = [-15999.9, -13999.9, -19500.1, -18000.1]
-location_point_of_image2 = [-13999.9, -11999.9, -19500.1, -18000.1]
-location_point_of_image3 = [-15999.9, -13999.9, -21000.1, -19500.1]
-location_point_of_image4 = [-13999.9, -11999.9, -21000.1, -19500.1]
-location_point_list = np.asarray([location_point_of_image1, location_point_of_image2, location_point_of_image3, location_point_of_image4])
-
-# def image_judge(location_point_list, pi, pk):
-#     judge_array = np.ones((5))
-#     for n in range(0,len(pi)):
-#         point_judge = 4
-#         for m in range(0, len(location_point_list)):
-#             if location_point_list[m, 0] < pk[n] < location_point_list[m, 1] and location_point_list[m, 2] < pi[n] < location_point_list[m, 3]:
-#                 point_judge = m
-#         judge_array[point_judge] = judge_array[point_judge] * 0
-#     judge = 4
-#     if (judge_array == np.asarray([0,1,1,1,1])).all():
-#         judge = 0
-#     elif (judge_array == np.asarray([1,0,1,1,1])).all():
-#         judge = 1
-#     elif (judge_array == np.asarray([1,1,0,1,1])).all():
-#         judge = 2
-#     elif (judge_array == np.asarray([1,1,1,0,1])).all():
-#         judge = 3
-#     return judge
+# #西経度、東経度、南緯度、北緯度
+# location_point_of_image1 = [-15999.9, -13999.9, -19500.1, -18000.1]
+# location_point_of_image2 = [-13999.9, -11999.9, -19500.1, -18000.1]
+# location_point_of_image3 = [-15999.9, -13999.9, -21000.1, -19500.1]
+# location_point_of_image4 = [-13999.9, -11999.9, -21000.1, -19500.1]
+# location_point_list = np.asarray([location_point_of_image1, location_point_of_image2, location_point_of_image3, location_point_of_image4])
 
 
 def image_judge(location_points, polygon):
@@ -154,49 +135,6 @@ def make_circle_list(listpk, listpi):
                 e = []
     return circle_list
 
-# def imaging(id, img, listpk, listpi, n=0):
-#     hr, hg, hb = img
-#     minkeidop = min(listpk)
-#     maxkeidop = max(listpk)
-#     minidop = min(listpi)
-#     maxidop = max(listpi)
-#     imagelistr = []
-#     imagelistg = []
-#     imagelistb = []
-#     imgyoko = maxkeidop - minkeidop + 1
-#     imgtate = maxidop - minidop + 1
-#     circle_lisit = make_circle_list(listpk, listpi)
-#     for x3 in range(minidop, maxidop + 1):
-#         for x4 in range(minkeidop, maxkeidop + 1):
-#             x3 = x3 + 0.5
-#             majiwari = 0
-#             for c in circle_lisit:
-#                 for n in range(0, len(c) - 1):
-#                     if koten(x4, x3, maxkeidop, x3, listpk[c[n]], listpi[c[n]], listpk[c[n + 1]], listpi[c[n + 1]]) <= 0 and koten(
-#                             listpk[c[n]], listpi[c[n]], listpk[c[n + 1]], listpi[c[n + 1]], x4, x3, maxkeidop, x3) <= 0:
-#                         majiwari = majiwari + 1
-#             x3 = int(x3 - 0.5)
-#             if majiwari % 2 == 1 :
-#                 imagelistr.append(hr[x3, x4])
-#                 imagelistg.append(hg[x3, x4])
-#                 imagelistb.append(hb[x3, x4])
-#             else:
-#                 imagelistr.append(0)
-#                 imagelistg.append(0)
-#                 imagelistb.append(0)
-#     imagelistr11 = np.asarray(imagelistr)
-#     imagelistg11 = np.asarray(imagelistg)
-#     imagelistb11 = np.asarray(imagelistb)
-#     imagelistr2 = np.reshape(imagelistr11, (imgtate, imgyoko))
-#     imagelistg2 = np.reshape(imagelistg11, (imgtate, imgyoko))
-#     imagelistb2 = np.reshape(imagelistb11, (imgtate, imgyoko))
-#     img = Image.new('RGB', (imgyoko, imgtate), (255, 255, 255))
-#     for y in range(0, imgyoko):
-#         for x in range(0, imgtate):
-#             img.putpixel((y, x), (imagelistr2[x, y], imagelistg2[x, y], imagelistb2[x, y]))
-#     img_resize = img.resize((227, 227), resample=Image.BICUBIC)
-#     img_resize.save('F5/' + str(id) + "_" + str(n) + '.bmp')
-
 def imaging(id, img, polygon_x, polygon_y):
     lon_min = min(polygon_x)
     lon_max = max(polygon_x)
@@ -211,14 +149,16 @@ def imaging(id, img, polygon_x, polygon_y):
     for x3 in range(lat_min, lat_max + 1):
         for x4 in range(lon_min, lon_max + 1):
             x3 = x3 + 0.5
-            majiwari = 0
+            intersection_num = 0
             for c in circle_lisit:
                 for n in range(0, len(c) - 1):
-                    if koten(x4, x3, lon_max, x3, polygon_x[c[n]], polygon_y[c[n]], polygon_x[c[n + 1]], polygon_y[c[n + 1]]) <= 0 and koten(
-                            polygon_x[c[n]], polygon_y[c[n]], polygon_x[c[n + 1]], polygon_y[c[n + 1]], x4, x3, lon_max, x3) <= 0:
-                        majiwari = majiwari + 1
+                    if (
+                        intersection(x4, x3, lon_max, x3, polygon_x[c[n]], polygon_y[c[n]], polygon_x[c[n + 1]], polygon_y[c[n + 1]]) <= 0
+                            ) and (
+                        intersection(polygon_x[c[n]], polygon_y[c[n]], polygon_x[c[n + 1]], polygon_y[c[n + 1]], x4, x3, lon_max, x3) <= 0):
+                        intersection_num += 1
             x3 = int(x3 - 0.5)
-            if majiwari % 2 == 1 :
+            if intersection_num % 2 == 1 :
                 imagelistr.append(img[0][x3, x4])
                 imagelistg.append(img[1][x3, x4])
                 imagelistb.append(img[2][x3, x4])
@@ -238,35 +178,6 @@ def imaging(id, img, polygon_x, polygon_y):
             img.putpixel((y, x), (imagelistr2[x, y], imagelistg2[x, y], imagelistb2[x, y]))
     img_resize = img.resize((227, 227), resample=Image.BICUBIC)
     img_resize.save('F5/' + str(id) + "_" + str(n) + '.bmp')
-
-def delete_list(h, del_axis):
-    for i in range(0,len(del_axis)):
-        h = np.delete(h, 0, 0)
-    return h
-
-# polygonnub=183530
-# iii=0
-# area = []
-# for x1 in range(0, polygonnub+1):
-#     print(x1)
-#     listpk = []
-#     listpi = []
-#     del_axis = []
-#     for x2 in range(0, int(zz2.shape[0])):
-#         if int(zz2[x2, 0]) == x1:
-#             listpk.append(zz2[x2, 1])
-#             listpi.append(zz2[x2, 2])
-#             del_axis.append(x2)
-#         else:
-#             break
-#     if not listpk==[]:
-#         n = image_judge(location_point_list, listpi, listpk)
-#         if not n == 4:
-#             for i in range(0, len(listpk)):
-#                 listpk[i] = int(keidotopix(listpk[i], location_point_list[n, 0], location_point_list[n, 1]))
-#                 listpi[i] = int(idotopix(listpi[i], location_point_list[n, 3], location_point_list[n, 2]))
-#             imaging(color_list[n, 0], color_list[n, 1], color_list[n, 2], listpk, listpi, x1, n)
-#     zz2 = delete_list(zz2, del_axis)
 
 def main():
 
