@@ -20,14 +20,19 @@ ORIGIN_LON_LAT = {  #https://www.gsi.go.jp/LAW/heimencho.html
 }
 
 IMG_WIDTH = 10000
-IMG_HIGHT = 7500
+IMG_HEIGHT = 7500
+
+OUT_IMG_SIZE = 227
 
 DATA_DIR = Path('./')
 
-COORD_FILE = 'Export_output.csv'  # "c02KD67120220401建築物_Merged_xy.csv"
+COORD_FILE = 'c20220401建築物の外周線_FeatureVert_xy.csv'  # c02KD67120220401建築物_Merged_xy.csv'
 COORD_FILE_PATH = DATA_DIR / COORD_FILE
 
-AERO_IMG_DIR = DATA_DIR / "10cm高解像度"
+AERO_IMG_DIR = DATA_DIR / '10cm高解像度'
+
+SAVE_DIR = DATA_DIR / 'kumamoto_fault_area+_A(C1-c3)_10cm'
+SAVE_DIR.mkdir(exist_ok=True)
 
 def get_location_point(path):
     with open(path, 'r') as f:
@@ -49,7 +54,7 @@ def get_location_point(path):
     x0 = data[4]
     y1 = data[5]
     x1 = x0 + IMG_WIDTH*scale
-    y0 = y1 + IMG_HIGHT*(-scale)
+    y0 = y1 + IMG_HEIGHT*(-scale)
     location_point = [x0, x1, y0, y1]
     return location_point
 
@@ -61,43 +66,16 @@ def open_image(path):
     img = [h1, h2, h3]
     return img
 
-# print("start")
-# ar, ag, ab = open_image('20160417-02KD661-a20.jpg')
-# br, bg, bb = open_image('20160417-02KD662-a20.jpg')
-# cr, cg, cb = open_image('20160415-02KD663-a20.jpg')
-# dr, dg, db = open_image('20160417-02KD664-a20.jpg')
-# color_list = np.asarray([[ar, ag, ab], [br, bg, bb],[cr, cg, cb], [dr,dg,db]])
-# ar, ag, ab, br, bg, bb, cr, cg, cb, dr, dg, db = [], [], [], [], [], [], [], [], [],[],[],[]
-# print("finish")
-
-def intersection(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy): # intersection
+def intersection(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy):
     s1 = ((apx - cpx) * (bpy - cpy)) + ((bpx - cpx) * (cpy - apy))
     s2 = ((apx - dpx) * (bpy - dpy)) + ((bpx - dpx) * (dpy - apy))
     return s1 * s2
 
 def lat2pix(lat, lat_up, lat_down):
-    return (lat_up - lat) / (lat_up - lat_down) * IMG_HIGHT
+    return (lat_up - lat) / (lat_up - lat_down) * IMG_HEIGHT
 
 def lon2pix(lon, lon_l, lon_r):
     return (lon - lon_l) / (lon_r - lon_l) * IMG_WIDTH
-
-
-# def koten(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy): # intersection
-#     s1 = ((apx - cpx) * (bpy - cpy)) + ((bpx - cpx) * (cpy - apy))
-#     s2 = ((apx - dpx) * (bpy - dpy)) + ((bpx - dpx) * (dpy - apy))
-#     return s1 * s2
-# def idotopix(ido,upido,downido):
-#     return (upido-ido)/(upido-downido)*7500
-# def keidotopix(keido,leftkeido,rightkeido):
-#     return (keido-leftkeido)/(rightkeido-leftkeido)*10000
-
-# #西経度、東経度、南緯度、北緯度
-# location_point_of_image1 = [-15999.9, -13999.9, -19500.1, -18000.1]
-# location_point_of_image2 = [-13999.9, -11999.9, -19500.1, -18000.1]
-# location_point_of_image3 = [-15999.9, -13999.9, -21000.1, -19500.1]
-# location_point_of_image4 = [-13999.9, -11999.9, -21000.1, -19500.1]
-# location_point_list = np.asarray([location_point_of_image1, location_point_of_image2, location_point_of_image3, location_point_of_image4])
-
 
 def image_judge(location_points, polygon):
     flag = False
@@ -106,27 +84,27 @@ def image_judge(location_points, polygon):
             flag = True
     return flag
 
-def make_circle_list(listpk, listpi):
+def make_circle_list(polygon_x, polygon_y):
     circle_list = []
     c = []
     k_list = []
     k = []
     e_list = []
     e = []
-    for i in range(len(listpk)):
+    for i in range(len(polygon_x)):
         if c == []:
             c.append(i)
-            k.append(listpk[i])
-            e.append(listpi[i])
+            k.append(polygon_x[i])
+            e.append(polygon_y[i])
         else:
-            if not (listpk[i] == listpk[c[0]] and listpi[i] == listpi[c[0]]):
+            if not (polygon_x[i] == polygon_x[c[0]] and polygon_y[i] == polygon_y[c[0]]):
                 c.append(i)
-                k.append(listpk[i])
-                e.append(listpi[i])
+                k.append(polygon_x[i])
+                e.append(polygon_y[i])
             else:
                 c.append(i)
-                k.append(listpk[i])
-                e.append(listpi[i])
+                k.append(polygon_x[i])
+                e.append(polygon_y[i])
                 circle_list.append(c)
                 k_list.append(k)
                 e_list.append(e)
@@ -135,7 +113,7 @@ def make_circle_list(listpk, listpi):
                 e = []
     return circle_list
 
-def imaging(id, img, polygon_x, polygon_y):
+def imaging(id, img, polygon_x, polygon_y, save_dir=None):
     lon_min = min(polygon_x)
     lon_max = max(polygon_x)
     lat_min = min(polygon_y)
@@ -158,7 +136,7 @@ def imaging(id, img, polygon_x, polygon_y):
                         intersection(polygon_x[c[n]], polygon_y[c[n]], polygon_x[c[n + 1]], polygon_y[c[n + 1]], x4, x3, lon_max, x3) <= 0):
                         intersection_num += 1
             x3 = int(x3 - 0.5)
-            if intersection_num % 2 == 1 :
+            if intersection_num % 2 == 1 and x3 < IMG_HEIGHT and x4 < IMG_WIDTH:
                 imagelistr.append(img[0][x3, x4])
                 imagelistg.append(img[1][x3, x4])
                 imagelistb.append(img[2][x3, x4])
@@ -166,33 +144,38 @@ def imaging(id, img, polygon_x, polygon_y):
                 imagelistr.append(0)
                 imagelistg.append(0)
                 imagelistb.append(0)
-    imagelistr11 = np.asarray(imagelistr)
-    imagelistg11 = np.asarray(imagelistg)
-    imagelistb11 = np.asarray(imagelistb)
-    imagelistr2 = np.reshape(imagelistr11, (img_h, img_w))
-    imagelistg2 = np.reshape(imagelistg11, (img_h, img_w))
-    imagelistb2 = np.reshape(imagelistb11, (img_h, img_w))
-    img = Image.new('RGB', (img_w, img_h), (255, 255, 255))
-    for y in range(0, img_w):
-        for x in range(0, img_h):
-            img.putpixel((y, x), (imagelistr2[x, y], imagelistg2[x, y], imagelistb2[x, y]))
-    img_resize = img.resize((227, 227), resample=Image.BICUBIC)
-    img_resize.save('F5/' + str(id) + "_" + str(n) + '.bmp')
+
+    if sum(imagelistr) / len(imagelistr) == 0:  # skip if image s blanc
+        print(f'roof_{id} cannot be found...')
+    else:
+        imagelistr11 = np.asarray(imagelistr)
+        imagelistg11 = np.asarray(imagelistg)
+        imagelistb11 = np.asarray(imagelistb)
+        imagelistr2 = np.reshape(imagelistr11, (img_h, img_w))
+        imagelistg2 = np.reshape(imagelistg11, (img_h, img_w))
+        imagelistb2 = np.reshape(imagelistb11, (img_h, img_w))
+        img = Image.new('RGB', (img_w, img_h), (255, 255, 255))
+        for y in range(0, img_w):
+            for x in range(0, img_h):
+                img.putpixel((y, x), (imagelistr2[x, y], imagelistg2[x, y], imagelistb2[x, y]))
+        img_resize = img.resize((OUT_IMG_SIZE, OUT_IMG_SIZE), resample=Image.BICUBIC)
+        if save_dir is not None:
+            print(f'Saving roof_{id}...')
+            img_resize.save(str(save_dir) + '/' + str(id) + '.bmp')
 
 def main():
-
     # Load polygon coordinates as DATAFRAME
-    df = pd.read_csv(COORD_FILE_PATH, usecols=[0,1,2])  # [1,2,3])
+    df = pd.read_csv(COORD_FILE_PATH, usecols=[1,2,3])
     # Exstract unique building_id from df
-    ids = df.drop_duplicates(subset = ['id'])['id'].to_list()
-    imgs = ['20160417-02KD664-a20.jpg']
-    for img_path in imgs: # sorted(AERO_IMG_DIR.glob('*.jpg')):
-        print(img_path)
+    ids = df.drop_duplicates(subset = ['ORIG_FID'])['ORIG_FID'].to_list()
+    img_list = ['02KD4922.jpg']
+    for img_path in img_list:  #sorted(AERO_IMG_DIR.glob('*.jpg'))[60:]:
+        print('\n', img_path)
         jgw_path = Path(img_path).with_suffix('.jgw')
         location_points = get_location_point(jgw_path)
         img = open_image(str(img_path))
         for id in ids:
-            selected_df = df.loc[df['id']==id]
+            selected_df = df.loc[df['ORIG_FID']==id]
             polygon = [[float(row['POINT_X']), float(row['POINT_Y'])] for idx, row in selected_df.iterrows()]
 
             if image_judge(location_points, polygon):  # judge whether the selected polygon is in the target image
@@ -201,7 +184,7 @@ def main():
                 polygon_y = [int(lat2pix(p[1], location_points[3], location_points[2])) for p in polygon]
                 
                 # crop roof image from aerial photo
-                imaging(id, img, polygon_x, polygon_y)
+                imaging(id, img, polygon_x, polygon_y, save_dir=SAVE_DIR)
             
 
 if __name__ == '__main__':
