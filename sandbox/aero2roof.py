@@ -24,14 +24,15 @@ IMG_HEIGHT = 7500
 
 OUT_IMG_SIZE = 227
 
-DATA_DIR = Path('./')
+ROOT_DIR = Path('./')
+DATA_DIR = ROOT_DIR / 'data'
 
 COORD_FILE = 'c20220401建築物の外周線_FeatureVert_xy.csv'  # c02KD67120220401建築物_Merged_xy.csv'
 COORD_FILE_PATH = DATA_DIR / COORD_FILE
 
 AERO_IMG_DIR = DATA_DIR / '10cm高解像度'
 
-SAVE_DIR = DATA_DIR / 'kumamoto_fault_area+_A(C1-c3)_10cm'
+SAVE_DIR = ROOT_DIR / 'kumamoto_fault_area+_A(C1-c3)_10cm'
 SAVE_DIR.mkdir(exist_ok=True)
 
 def get_location_point(path):
@@ -168,8 +169,7 @@ def main():
     df = pd.read_csv(COORD_FILE_PATH, usecols=[1,2,3])
     # Exstract unique building_id from df
     ids = df.drop_duplicates(subset = ['ORIG_FID'])['ORIG_FID'].to_list()
-    img_list = ['02KD4922.jpg']
-    for img_path in img_list:  #sorted(AERO_IMG_DIR.glob('*.jpg'))[60:]:
+    for img_path in sorted(AERO_IMG_DIR.glob('*.jpg')):
         print('\n', img_path)
         jgw_path = Path(img_path).with_suffix('.jgw')
         location_points = get_location_point(jgw_path)
@@ -185,6 +185,9 @@ def main():
                 
                 # crop roof image from aerial photo
                 imaging(id, img, polygon_x, polygon_y, save_dir=SAVE_DIR)
+
+                # remove cropped roof
+                ids.remove(id)
             
 
 if __name__ == '__main__':
