@@ -22,7 +22,7 @@ ORIGIN_LON_LAT = {  #https://www.gsi.go.jp/LAW/heimencho.html
 IMG_WIDTH = 10000
 IMG_HEIGHT = 7500
 
-OUT_IMG_SIZE = 227
+OUT_IMG_SIZE = 256
 
 ROOT_DIR = Path('./')
 DATA_DIR = ROOT_DIR / 'data'
