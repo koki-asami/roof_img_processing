@@ -22,17 +22,17 @@ ORIGIN_LON_LAT = {  #https://www.gsi.go.jp/LAW/heimencho.html
 IMG_WIDTH = 10000
 IMG_HEIGHT = 7500
 
-OUT_IMG_SIZE = 256
+OUT_IMG_SIZE = 512
 
 ROOT_DIR = Path('./')
 DATA_DIR = ROOT_DIR / 'data'
 
-COORD_FILE = 'c20220401建築物の外周線_FeatureVert_xy.csv'  # c02KD67120220401建築物_Merged_xy.csv'
+COORD_FILE = 'c20220401建築物の外周線_FeatureVert_xy.csv'  # 'c20160401建築物の外周線_FeatureVert_XYTableToPoint.csv'  # 'c20160401建築物の外周線_FeatureVert_xy.csv'  # c02KD67120220401建築物_Merged_xy.csv'
 COORD_FILE_PATH = DATA_DIR / COORD_FILE
 
-AERO_IMG_DIR = DATA_DIR / '10cm高解像度'
+AERO_IMG_DIR = DATA_DIR / '10cm高解像度'  # '20cm高解像度_A_地区'  # '10cm高解像度'
 
-SAVE_DIR = ROOT_DIR / 'kumamoto_fault_area+_A(C1-c3)_10cm'
+SAVE_DIR = ROOT_DIR / 'kumamoto_fault_area+_A(C1-c3)_10cm_new_512'  # '20cm高解像度_A_地区'  # 'kumamoto_fault_area+_A(C1-c3)_10cm'
 SAVE_DIR.mkdir(exist_ok=True)
 
 def get_location_point(path):
@@ -159,14 +159,24 @@ def imaging(id, img, polygon_x, polygon_y, save_dir=None):
         for y in range(0, img_w):
             for x in range(0, img_h):
                 img.putpixel((y, x), (imagelistr2[x, y], imagelistg2[x, y], imagelistb2[x, y]))
-        img_resize = img.resize((OUT_IMG_SIZE, OUT_IMG_SIZE), resample=Image.BICUBIC)
-        if save_dir is not None:
+        img_resized = img.resize((OUT_IMG_SIZE, OUT_IMG_SIZE), resample=Image.BICUBIC)
+        img_tmp = imagelistr2 + imagelistg2 + imagelistb2
+        middle = img_tmp[int(img_h/2)-1][int(img_w/2)] \
+                + img_tmp[int(img_h/2)][int(img_w/2)] \
+                + img_tmp[int(img_h/2)-1][int(img_w/2)-1] \
+                + img_tmp[int(img_h/2)][int(img_w/2)] \
+                + img_tmp[int(img_h/2)+1][int(img_w/2)] \
+                + img_tmp[int(img_h/2)][int(img_w/2)+1] \
+                + img_tmp[int(img_h/2)+1][int(img_w/2)+1] \
+                + img_tmp[int(img_h/2)+1][int(img_w/2)-1] \
+                + img_tmp[int(img_h/2)-1][int(img_w/2)+1]
+        if save_dir is not None and middle/9 not in (0, 765):
             print(f'Saving roof_{id}...')
-            img_resize.save(str(save_dir) + '/' + str(id) + '.bmp')
+            img_resized.save(str(save_dir) + '/' + str(id) + '.bmp')
 
 def main():
     # Load polygon coordinates as DATAFRAME
-    df = pd.read_csv(COORD_FILE_PATH, usecols=[1,2,3])
+    df = pd.read_csv(COORD_FILE_PATH, usecols=[1,2,3]) # 1,2,3 #without id
     # Exstract unique building_id from df
     ids = df.drop_duplicates(subset = ['ORIG_FID'])['ORIG_FID'].to_list()
     for img_path in sorted(AERO_IMG_DIR.glob('*.jpg')):
