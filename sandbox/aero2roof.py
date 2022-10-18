@@ -3,6 +3,7 @@
 
 from re import X
 import csv
+from numba import jit
 import numpy as np
 from osgeo import gdal, gdalconst #, gdal_array, osr
 from PIL import Image
@@ -32,7 +33,7 @@ COORD_FILE_PATH = DATA_DIR / COORD_FILE
 
 AERO_IMG_DIR = DATA_DIR / '20cm高解像度_A_地区'  # '20cm高解像度_A_地区'  # '10cm高解像度'
 
-SAVE_DIR = ROOT_DIR / '20cm高解像度_A_地区_512'  # '20cm高解像度_A_地区'  # 'kumamoto_fault_area+_A(C1-c3)_10cm'
+SAVE_DIR = ROOT_DIR / '20cm高解像度_A_地区_512_new'  # '20cm高解像度_A_地区'  # 'kumamoto_fault_area+_A(C1-c3)_10cm'
 SAVE_DIR.mkdir(exist_ok=True)
 
 def get_location_point(path):
@@ -67,25 +68,28 @@ def open_image(path):
     img = [h1, h2, h3]
     return img
 
+@jit(nopython=True, cache=True)
 def intersection(apx, apy, bpx, bpy, cpx, cpy, dpx, dpy):
     s1 = ((apx - cpx) * (bpy - cpy)) + ((bpx - cpx) * (cpy - apy))
     s2 = ((apx - dpx) * (bpy - dpy)) + ((bpx - dpx) * (dpy - apy))
     return s1 * s2
 
+@jit(nopython=True, cache=True)
 def lat2pix(lat, lat_up, lat_down):
     return (lat_up - lat) / (lat_up - lat_down) * IMG_HEIGHT
 
+@jit(nopython=True, cache=True)
 def lon2pix(lon, lon_l, lon_r):
     return (lon - lon_l) / (lon_r - lon_l) * IMG_WIDTH
 
 def image_judge(location_points, polygon):
-    flag = False
+    flag=False
     for lon, lat in polygon:
         if location_points[0] < lon < location_points[1] and location_points[2] < lat < location_points[3]:
             flag = True
     return flag
 
-def make_circle_list(polygon_x, polygon_y):
+def make_circle_list(polygon_x, polygon_y, circle_list=[], c=[], k_list=[], k=[], e_list=[], e=[]):
     circle_list = []
     c = []
     k_list = []
